@@ -183,6 +183,50 @@ export const getHostSessionData = query({
   },
 });
 
+export const createMistakeMiniSession = mutation({
+  args: {
+    originalSessionId: v.id("quiz_sessions"),
+    participantId: v.id("participants"),
+  },
+  handler: async (ctx, args) => {
+    const originalSession = await ctx.db.get(args.originalSessionId);
+    if (!originalSession) throw new Error("Session not found");
+
+    // 1️⃣ Get answers from this participant in this session
+    const answers = await ctx.db
+      .query("answers")
+      .withIndex("by_participant_session", (q) =>
+        q.eq("participantId", args.participantId)
+         .eq("sessionId", args.originalSessionId)
+      )
+      .collect();
+
+    // 2️⃣ Filter incorrect
+    const incorrect = answers.filter((a) => !a.score || a.score === 0);
+
+    if (incorrect.length === 0) {
+      throw new Error("No mistakes to retry");
+    }
+
+    const mistakeQuestionIds = incorrect.map((a) => a.questionId);
+
+    // 3️⃣ Create new session
+    const newSessionId = await ctx.db.insert("quiz_sessions", {
+      quizId: originalSession.quizId,
+      hostId: originalSession.hostId,
+      join_code: Math.random().toString(36).substring(2, 8),
+      status: "waiting",
+      current_question_index: 0,
+      show_leaderboard: false,
+
+      mode: "mistake_mini",
+      customQuestionIds: mistakeQuestionIds,
+    });
+
+    return newSessionId;
+  },
+});
+
 export const getPlayerSessionData = query({
   args: {
     sessionId: v.id("quiz_sessions"),
@@ -195,11 +239,20 @@ export const getPlayerSessionData = query({
     const participant = await ctx.db.get(args.participantId);
     if (!participant || participant.sessionId !== args.sessionId) return null;
 
-    const questions = await ctx.db
-      .query("questions")
-      .withIndex("by_quizId_order", (q) => q.eq("quizId", session.quizId))
-      .order("asc")
-      .collect();
+    let questions;
+
+    if (session.mode === "mistake_mini" && session.customQuestionIds) {
+      questions = await Promise.all(
+        session.customQuestionIds.map((id) => ctx.db.get(id))
+      );
+    } else {
+      questions = await ctx.db
+        .query("questions")
+        .withIndex("by_quizId_order", (q) =>
+          q.eq("quizId", session.quizId)
+        )
+        .collect();
+    }
 
     const currentQuestion = questions[session.current_question_index] || null;
 

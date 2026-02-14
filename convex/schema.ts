@@ -53,6 +53,8 @@ export default defineSchema({
 
     currentQuestionStartTime: v.optional(v.number()),
     currentQuestionEndTime: v.optional(v.number()),
+    mode: v.optional(v.string()),
+    customQuestionIds: v.optional(v.array(v.id("questions"))),
 
   }).index("by_join_code", ["join_code"]),
 
@@ -63,6 +65,16 @@ export default defineSchema({
     score: v.number(),
   })
     .index("by_sessionId_score", ["sessionId", "score"]),
+  // wrong answer table
+  participant_answers: defineTable({
+    sessionId: v.id("quiz_sessions"),
+    participantId: v.id("participants"),
+    questionId: v.id("questions"),
+    selected_answer: v.string(),
+    is_correct: v.boolean(),
+  })
+  .index("by_participant_session", ["participantId", "sessionId"])
+  .index("by_session", ["sessionId"]),
 
   // 'answers' table
   answers: defineTable({
@@ -76,5 +88,6 @@ export default defineSchema({
   })
     .index("by_session_question", ["sessionId", "questionId"])
     .index("by_participant_question", ["participantId", "questionId"])
-    .index("by_session_question_time", ["sessionId", "questionId", "time_taken"]),
+    .index("by_session_question_time", ["sessionId", "questionId", "time_taken"])
+    .index("by_participant_session", ["participantId", "sessionId"]),
 });
