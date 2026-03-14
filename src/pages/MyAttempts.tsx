@@ -29,7 +29,7 @@ export default function MyAttempts() {
 
       {uniqueAttempts.map((a: any) => (
         <Card
-          key={a.session._id}
+          key={a.participant._id}
           className="p-4 flex justify-between items-center"
         >
           <div>

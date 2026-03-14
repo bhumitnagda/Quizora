@@ -206,8 +206,14 @@ export const submitAnswer = mutation({
     });
 
     if (score > 0) {
+<<<<<<< HEAD
       await ctx.db.patch(participantId, {
         score: participant.score + score,
+=======
+      const participant = await ctx.db.get(participantId);
+      await ctx.db.patch(participantId, {
+        score: (participant?.score ?? 0) + score,
+>>>>>>> 46df629 (Fix score calculation bug and stabilize quiz flow with attempts + mistake mini session)
       });
     }
 

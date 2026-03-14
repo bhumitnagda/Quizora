@@ -1,7 +1,12 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+<<<<<<< HEAD
 import { Doc, Id } from "./_generated/dataModel";
 
+=======
+import { Doc } from "./_generated/dataModel";
+import { Id } from "./_generated/dataModel";
+>>>>>>> 46df629 (Fix score calculation bug and stabilize quiz flow with attempts + mistake mini session)
 // Helper function to generate a 6-character join code
 const generateJoinCode = () => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -86,19 +91,12 @@ export const getSessionByJoinCode = query({
 export const joinSession = mutation({
   args: { join_code: v.string(), name: v.string() },
   handler: async (ctx, args) => {
-
-    const sanitizedCode = args.join_code
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "");
-
     const session = await ctx.db
       .query("quiz_sessions")
       .withIndex("by_join_code", (q) => q.eq("join_code", args.join_code.replace(/\s/g, "").toUpperCase()))
       .first();
 
-    if (!session) {
-      throw new Error("Quiz code not found.");
-    }
+    if (!session) throw new Error("Quiz code not found.");
 
     if (session.status !== "waiting" && session.mode !== "mistake_mini") {
       throw new Error("This quiz has already started.");
@@ -113,10 +111,7 @@ export const joinSession = mutation({
       userId: identity?.subject,
     });
 
-    return {
-      sessionId: session._id,
-      participantId,
-    };
+    return { sessionId: session._id, participantId };
   },
 });
 
@@ -210,6 +205,10 @@ export const createMistakeMiniSession = mutation({
     if (!originalSession) throw new Error("Session not found");
 
     // Determine the scope of questions to check for mistakes
+<<<<<<< HEAD
+=======
+    // let scopeQuestionIds: string[];
+>>>>>>> 46df629 (Fix score calculation bug and stabilize quiz flow with attempts + mistake mini session)
     let scopeQuestionIds: Id<"questions">[];
     if (originalSession.customQuestionIds) {
       // If reviewing a mini-session, only check questions from that session
@@ -264,6 +263,10 @@ export const createMistakeMiniSession = mutation({
     return { sessionId: newSessionId, join_code };
   },
 });
+<<<<<<< HEAD
+=======
+
+>>>>>>> 46df629 (Fix score calculation bug and stabilize quiz flow with attempts + mistake mini session)
 export const getPlayerSessionData = query({
   args: {
     sessionId: v.id("quiz_sessions"),
@@ -528,7 +531,13 @@ export const startReviewSession = query({
 
     // Fetch questions used in mini session
     const questions = await Promise.all(
+<<<<<<< HEAD
       (session.customQuestionIds ?? []).map((qId) => ctx.db.get(qId))
+=======
+      (session.customQuestionIds ?? []).map((qId) =>
+        ctx.db.get(qId as Id<"questions">)
+      )
+>>>>>>> 46df629 (Fix score calculation bug and stabilize quiz flow with attempts + mistake mini session)
     );
 
     const filteredQuestions = questions.filter(

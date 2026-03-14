@@ -55,7 +55,7 @@ const PlayQuiz = () => {
     sessionId && participantId
     ? {
         sessionId: sessionId as Id<"quiz_sessions">,
-        participantId: participantId as Id<"participants">,
+        participantId: participantId as Id<"participants">
       }
     : "skip"
   ) as PlayerSessionData | undefined | null;
@@ -95,7 +95,7 @@ const miniSessionScore =
 
 const displayScore = isMiniMode
   ? miniSessionScore
-  : sessionData?.participant?.score;
+ : sessionData?.participant?.score;
 
   useEffect(() => {
     setSelectedAnswer(null);
@@ -296,7 +296,6 @@ const displayScore = isMiniMode
 
   const remainingMistakes =
   sessionData?.participantAnswers?.filter((a: any) => !a.is_correct) || [];
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-200/30 via-zinc-200/80 to-zinc-200/80 dark:bg-gradient-to-b dark:from-black/80 dark:via-black/80 dark:to-black/80 pt-4 pb-4 ">
       <div className="container max-w-md sm:max-w-2xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mt-12">
@@ -320,7 +319,7 @@ const displayScore = isMiniMode
               <div className="text-right flex-shrink-0">
                 <p className="text-xs sm:text-sm text-muted-foreground">Your Score</p>
                 <p className="text-lg sm:text-xl md:text-2xl font-bold text-secondary">{displayScore || 0}</p>
-              </div>
+        </div>
             </div>
           </div>
         </Card>
