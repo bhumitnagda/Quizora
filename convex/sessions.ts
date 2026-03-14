@@ -17,7 +17,7 @@ const generateUniqueJoinCode = async (ctx: any) => {
     const candidate = generateJoinCode();
     const exists = await ctx.db
       .query("quiz_sessions")
-      .withIndex("by_join_code", (q) => q.eq("join_code", candidate))
+      .withIndex("by_join_code", (q:any) => q.eq("join_code", candidate))
       .first();
     if (!exists) {
       return candidate;
@@ -86,12 +86,19 @@ export const getSessionByJoinCode = query({
 export const joinSession = mutation({
   args: { join_code: v.string(), name: v.string() },
   handler: async (ctx, args) => {
+
+    const sanitizedCode = args.join_code
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+
     const session = await ctx.db
       .query("quiz_sessions")
       .withIndex("by_join_code", (q) => q.eq("join_code", args.join_code.replace(/\s/g, "").toUpperCase()))
       .first();
 
-    if (!session) throw new Error("Quiz code not found.");
+    if (!session) {
+      throw new Error("Quiz code not found.");
+    }
 
     if (session.status !== "waiting" && session.mode !== "mistake_mini") {
       throw new Error("This quiz has already started.");
@@ -106,7 +113,10 @@ export const joinSession = mutation({
       userId: identity?.subject,
     });
 
-    return { sessionId: session._id, participantId };
+    return {
+      sessionId: session._id,
+      participantId,
+    };
   },
 });
 
@@ -254,7 +264,6 @@ export const createMistakeMiniSession = mutation({
     return { sessionId: newSessionId, join_code };
   },
 });
-
 export const getPlayerSessionData = query({
   args: {
     sessionId: v.id("quiz_sessions"),

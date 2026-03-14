@@ -55,7 +55,7 @@ const PlayQuiz = () => {
     sessionId && participantId
     ? {
         sessionId: sessionId as Id<"quiz_sessions">,
-        participantId: participantId as Id<"participants">
+        participantId: participantId as Id<"participants">,
       }
     : "skip"
   ) as PlayerSessionData | undefined | null;
